@@ -1,4 +1,4 @@
-'use strict'
+`'use strict'`
 
 sqlite = require('sqlite3').verbose()
 fs = require 'fs'
@@ -17,7 +17,7 @@ class Card
     @name = data.name
     @desc = data.desc
     if @isTypeMonster
-      @level = data.level
+      @originLevel = data.level
       @race = data.race
       @attribute = data.attribute
       @atk = data.atk
@@ -32,6 +32,15 @@ Object.defineProperty Card.prototype, 'isOcg',
 Object.defineProperty Card.prototype, 'isTcg',
   get: -> @ot & 2 > 0
 
+Object.defineProperty Card.prototype, 'level',
+  get: -> @originLevel % 65536
+
+Object.defineProperty Card.prototype, 'pendulumScale',
+  get: ->
+    if @isTypePendulum
+      (@originLevel - (@originLevel % 65536)) / 65536 / 257
+    else
+      -1
 
 class Cards
   @readDataSQL = "select * from datas join texts on datas.id == texts.id where datas.id = (?)"
@@ -117,10 +126,10 @@ class Cards
   isRaceName: (systemNumber) ->
     systemNumber >= 1020 and systemNumber < 1050
   isTypeName: (systemNumber) ->
-# Magic Number: ???
+  # Magic Number: ???
     systemNumber >= 1050 and systemNumber < 1080 and systemNumber != 1053 and systemNumber != 1065
 
-# constant.lua load.
+  # constant.lua load.
   loadConstantsFile: (filePath) ->
     @loadConstants fs.readFileSync(filePath).toString()
 
@@ -131,6 +140,8 @@ class Cards
       @checkAndAddConstant name, value, 'ATTRIBUTE_', @attributeConstants
       @checkAndAddConstant name, value, 'RACE_', @raceConstants
       @checkAndAddConstant name, value, 'TYPE_', @typeConstants
+      # all type race
+      @raceConstants = @raceConstants.slice(1)
 
   loadLuaLines: (line) ->
     answer = line.match /([A-Z_]+)\s*=\s*0x(\d+)/
@@ -141,7 +152,7 @@ class Cards
     return unless name.startsWith prefix
     target.push {name: name.substring(prefix.length).toLowerCase(), value: value}
 
-# links.
+  # links.
   linkStringAndConstants: ->
     @linkStringAndConstant @attributeNames, @attributeConstants, @attributes
     @linkStringAndConstant @raceNames, @raceConstants, @races
@@ -157,11 +168,11 @@ class Cards
         value: constant.value
         text: strings[i]
 
-# register
-# !!!WARNING!!!
-# @registerMethods set the Card class.
-# that means registered methods would be mixed in
-# that's because we oppose that constant.lua is always like.
+  # register
+  # !!!WARNING!!!
+  # @registerMethods set the Card class.
+  # that means registered methods would be mixed in
+  # that's because we oppose that constant.lua is always like.
   registerMethods: ->
     @registerTypedMethods "attribute", @attributes
     @registerTypedMethods "race", @races
@@ -179,10 +190,21 @@ class Cards
         }
     `
     0
+  raceName: (card) ->
+    for race in @races
+      if (card.race & race.value) > 0
+        return race.text
+    ''
+
+  attributeName: (card) ->
+    for attribute in @attributes
+      if (card.attribute & attribute.value) > 0
+        return attribute.text
+    ''
 
 String.prototype.toCamelCase = ->
   this[0].toUpperCase() + this.substring(1).toLowerCase()
 
 new Cards('zh-CN')
-Cards['zh-CN'].getCardByID 50692511, (card) ->
-  console.log card
+new Cards('en-US')
+new Cards('ja-JP')

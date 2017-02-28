@@ -22,7 +22,7 @@
       this.name = data.name;
       this.desc = data.desc;
       if (this.isTypeMonster) {
-        this.level = data.level;
+        this.originLevel = data.level;
         this.race = data.race;
         this.attribute = data.attribute;
         this.atk = data.atk;
@@ -47,6 +47,22 @@
   Object.defineProperty(Card.prototype, 'isTcg', {
     get: function() {
       return this.ot & 2 > 0;
+    }
+  });
+
+  Object.defineProperty(Card.prototype, 'level', {
+    get: function() {
+      return this.originLevel % 65536;
+    }
+  });
+
+  Object.defineProperty(Card.prototype, 'pendulumScale', {
+    get: function() {
+      if (this.isTypePendulum) {
+        return (this.originLevel - (this.originLevel % 65536)) / 65536 / 257;
+      } else {
+        return -1;
+      }
     }
   });
 
@@ -175,7 +191,8 @@
           ref = this.loadLuaLines(line), name = ref[0], value = ref[1];
           this.checkAndAddConstant(name, value, 'ATTRIBUTE_', this.attributeConstants);
           this.checkAndAddConstant(name, value, 'RACE_', this.raceConstants);
-          results.push(this.checkAndAddConstant(name, value, 'TYPE_', this.typeConstants));
+          this.checkAndAddConstant(name, value, 'TYPE_', this.typeConstants);
+          results.push(this.raceConstants = this.raceConstants.slice(1));
         }
         return results;
       }
@@ -243,6 +260,30 @@
         return 0;
       }
 
+      raceName(card) {
+        var j, len, race, ref;
+        ref = this.races;
+        for (j = 0, len = ref.length; j < len; j++) {
+          race = ref[j];
+          if ((card.race & race.value) > 0) {
+            return race.text;
+          }
+        }
+        return '';
+      }
+
+      attributeName(card) {
+        var attribute, j, len, ref;
+        ref = this.attributes;
+        for (j = 0, len = ref.length; j < len; j++) {
+          attribute = ref[j];
+          if ((card.attribute & attribute.value) > 0) {
+            return attribute.text;
+          }
+        }
+        return '';
+      }
+
     };
 
     Cards.readDataSQL = "select * from datas join texts on datas.id == texts.id where datas.id = (?)";
@@ -263,10 +304,8 @@
 
   new Cards('zh-CN');
 
-  Cards['zh-CN'].getCardByID(50692511, function(card) {
-    return console.log(card);
-  });
+  new Cards('en-US');
+
+  new Cards('ja-JP');
 
 }).call(this);
-
-//# sourceMappingURL=Card.js.map
