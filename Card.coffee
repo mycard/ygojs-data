@@ -1,0 +1,188 @@
+'use strict'
+
+sqlite = require('sqlite3').verbose()
+fs = require 'fs'
+
+class Card
+  constructor: (data) ->
+    @readData data
+
+  readData: (data) ->
+    @id = data.id
+    @ot = data.ot
+    @alias = data.alias
+    @setcode = data.setcode
+    @type = data.type
+    @category = data.category
+    @name = data.name
+    @desc = data.desc
+    if @isTypeMonster
+      @level = data.level
+      @race = data.race
+      @attribute = data.attribute
+      @atk = data.atk
+      @def = data.def
+
+Object.defineProperty Card.prototype, 'isAlias',
+  get: -> @alias > 0
+
+Object.defineProperty Card.prototype, 'isOcg',
+  get: -> @ot & 1 > 0
+
+Object.defineProperty Card.prototype, 'isTcg',
+  get: -> @ot & 2 > 0
+
+
+class Cards
+  @readDataSQL = "select * from datas join texts on datas.id == texts.id where datas.id = (?)"
+  @searchNameSQL = "select id from texts where name like (?)"
+  @localePath = "./ygopro-database/locales/"
+  @defaultConstants = "./constant.lua"
+
+  constructor: (locale, constants) ->
+    @cards = {}
+
+    db = Cards.localePath + locale + "/cards.cdb"
+    strings = Cards.localePath + locale + "/strings.conf"
+    constants = Cards.defaultConstants unless constants
+
+    @db = new sqlite.Database(db)
+
+    @attributeNames = []
+    @raceNames = []
+    @typeNames = []
+
+    @attributeConstants = []
+    @raceConstants = []
+    @typeConstants = []
+
+    @attributes = []
+    @races = []
+    @types = []
+
+    @loadStringsFile strings
+    @loadConstantsFile constants
+    @linkStringAndConstants()
+    @registerMethods()
+
+    Cards[locale] = this
+
+  getCardByID: (id, callback) ->
+    callback(@cards[id]) if @cards[id]
+    @generateCardByID id, callback
+
+  generateCardByID: (id, callback) ->
+    stmt = @db.prepare Cards.readDataSQL
+    stmt.run id
+    stmt.all @onSqlRead.bind
+      callback: callback,
+      stmt: stmt,
+      cards: @cards
+
+  onSqlRead: (err, rows) ->
+     if (err)
+       console.log "sql query failed: #{err}"
+       @callback(null)
+     else if rows.length == 0
+       console.log "no card [#{id}]"
+       @callback(null)
+     else
+      # as id is the primary key we can assume that rows always has 0 or 1 value.
+       card = new Card rows[0]
+       @cards[card.id] = card
+       @callback(card)
+     @stmt.finalize()
+
+  # strings.conf load.
+  loadStringsFile: (filePath) ->
+    @loadStrings fs.readFileSync(filePath).toString()
+
+  loadStrings: (stringFile)->
+    lines = stringFile.split "\n"
+    for line in lines
+      continue unless line.startsWith '!system 10'
+      [systemNumber, text] = @loadStringLines line
+      @attributeNames.push text if @isAttributeName systemNumber
+      @raceNames.push text if @isRaceName systemNumber
+      @typeNames.push text if @isTypeName systemNumber
+
+  loadStringLines: (line) ->
+    reg = /!system (\d+) (.+)/
+    answer = line.match reg
+    return [0, ''] if answer == null
+    [parseInt(answer[1]), answer[2]]
+
+  isAttributeName: (systemNumber) ->
+    systemNumber >= 1010 and systemNumber < 1020
+  isRaceName: (systemNumber) ->
+    systemNumber >= 1020 and systemNumber < 1050
+  isTypeName: (systemNumber) ->
+# Magic Number: ???
+    systemNumber >= 1050 and systemNumber < 1080 and systemNumber != 1053 and systemNumber != 1065
+
+# constant.lua load.
+  loadConstantsFile: (filePath) ->
+    @loadConstants fs.readFileSync(filePath).toString()
+
+  loadConstants: (stringFile) ->
+    lines = stringFile.split "\n"
+    for line in lines
+      [name, value] = @loadLuaLines line
+      @checkAndAddConstant name, value, 'ATTRIBUTE_', @attributeConstants
+      @checkAndAddConstant name, value, 'RACE_', @raceConstants
+      @checkAndAddConstant name, value, 'TYPE_', @typeConstants
+
+  loadLuaLines: (line) ->
+    answer = line.match /([A-Z_]+)\s*=\s*0x(\d+)/
+    return ['', 0] if answer == null
+    [answer[1], parseInt(answer[2], 16)]
+
+  checkAndAddConstant: (name, value, prefix, target) ->
+    return unless name.startsWith prefix
+    target.push {name: name.substring(prefix.length).toLowerCase(), value: value}
+
+# links.
+  linkStringAndConstants: ->
+    @linkStringAndConstant @attributeNames, @attributeConstants, @attributes
+    @linkStringAndConstant @raceNames, @raceConstants, @races
+    @linkStringAndConstant @typeNames, @typeConstants, @types
+
+  linkStringAndConstant: (strings, constants, target) ->
+    target.length = 0
+    for i in [0..(strings.length - 1)]
+      constant = constants[i]
+      continue unless constant
+      target.push
+        name: constant.name
+        value: constant.value
+        text: strings[i]
+
+# register
+# !!!WARNING!!!
+# @registerMethods set the Card class.
+# that means registered methods would be mixed in
+# that's because we oppose that constant.lua is always like.
+  registerMethods: ->
+    @registerTypedMethods "attribute", @attributes
+    @registerTypedMethods "race", @races
+    @registerTypedMethods "type", @types
+
+  registerTypedMethods: (prefix, items) ->
+    `
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+            let name = "is" + prefix.toCamelCase() + item.name.toCamelCase();
+            Card.prototype[name + "?"] = function () {
+                return (this[prefix] & item.value) > 0
+            }
+            Object.defineProperty(Card.prototype, name, { get: Card.prototype[name + "?" ] });
+        }
+    `
+    0
+
+String.prototype.toCamelCase = ->
+  this[0].toUpperCase() + this.substring(1).toLowerCase()
+
+new Cards('zh-CN')
+Cards['zh-CN'].getCardByID 50692511, (card) ->
+  console.log card
