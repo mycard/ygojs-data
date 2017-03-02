@@ -1,14 +1,16 @@
 # Cards class
 `Cards` 类描述了一个语言环境下的卡片集合。
 ## 函数
-名称|参数|说明
+名称|返回|说明
 ----|----|----
-constructor(lang[, constantFilepath])|'zh-CN'|以给定参数为语言，创建一个新集合。
-getCardById(id, callback(card))|id|查询指定ID的卡片。`*`
-getAttributeName(card)|card|获得卡片在本语言下的的属性名。
-getRaceName(card)|card|获得卡片在本语言下的的种族名。
+constructor(lang[, constantFilepath])|构造|以给定参数为语言，创建一个新集合。
+getCardById(id)|Card|查询指定ID的卡片。
+getCardByIdASync(id, callback(card))|No sense|查询指定ID的卡片。`*`
+getAttributeName(card)|String|获得卡片在本语言下的的属性名。
+getRaceName(card)|String|获得卡片在本语言下的的种族名。
+[id]|Card|查询指定ID的卡片。
 
-`*` 由于 `sqlite3` 不可同步查询，这一函数没有同步版本。若您确信此卡在曾查询的卡池中，可考虑使用 `Cards#cards[id]` 来获得 `Card` 对象。
+`*` 使用 `sqlite3` 的异步方法可能更稳定。
 
 ## 静态函数
 名称|参数|说明
@@ -16,6 +18,8 @@ getRaceName(card)|card|获得卡片在本语言下的的种族名。
 Cards[lang]|'zh-CN'|获取以此参数初始化的 Cards 对象。
 
 # Card class
+`Card` 描述了一张卡。
+
 **请注意，`Card` 类的多数函数由 `constant.lua` 中的内容动态生成。**
 
 之所以写在文档中，是因为我们近似认为 `costant.lua` 是近似不变的。
@@ -47,6 +51,7 @@ def|防御力，怪兽卡片才具有
 `*` isAlias| 此卡是否另一张卡的别名
 `*` isOcg| 此卡是否在 `OCG` 卡池中
 `*` isTcg| 此卡是否在 `TCG` 卡池中
+`*` isEx|此卡游戏开始时是否在额外卡组中
 isTypeMonster| 是否是怪兽
 isTypeSpell|是否是魔法
 isTypeTrap|是否是陷阱

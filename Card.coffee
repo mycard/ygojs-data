@@ -1,6 +1,7 @@
 `'use strict'`
 
-sqlite = require('sqlite3').verbose()
+sqlite = require 'sqlite3'
+sqliteSync = require 'better-sqlite3'
 fs = require 'fs'
 
 class Card
@@ -32,6 +33,9 @@ Object.defineProperty Card.prototype, 'isOcg',
 Object.defineProperty Card.prototype, 'isTcg',
   get: -> @ot & 2 > 0
 
+Object.defineProperty Card.prototype, 'isEx',
+  get: -> @isSynchro or @isXyz or @isFusion or @isLink
+
 Object.defineProperty Card.prototype, 'level',
   get: -> @originLevel % 65536
 
@@ -56,6 +60,7 @@ class Cards
     constants = Cards.defaultConstants unless constants
 
     @db = new sqlite.Database(db)
+    @dbSync = new sqliteSync(db)
 
     @attributeNames = []
     @raceNames = []
@@ -74,19 +79,42 @@ class Cards
     @linkStringAndConstants()
     @registerMethods()
 
-    Cards[locale] = this
+    proxy = new Proxy this, get: (target, name) ->
+      id = parseInt name
+      if id and id > 0
+        return target.getCardByID id
+      else
+        target[name]
 
-  getCardByID: (id, callback) ->
+    Cards[locale] = proxy
+    proxy
+
+  getCardByIDASync: (id, callback) ->
     callback(@cards[id]) if @cards[id]
-    @generateCardByID id, callback
+    @generateCardByIDAsync id, callback
 
-  generateCardByID: (id, callback) ->
+  getCardByID: (id) ->
+    callback(@cards[id]) if @cards[id]
+    @generateCardByID id
+
+  generateCardByIDAsync: (id, callback) ->
     stmt = @db.prepare Cards.readDataSQL
     stmt.run id
     stmt.all @onSqlRead.bind
       callback: callback,
       stmt: stmt,
       cards: @cards
+
+  generateCardByID: (id) ->
+    stmt = @dbSync.prepare Cards.readDataSQL
+    row = stmt.get id
+    if row
+      card = new Card row
+      @cards[card.id] = card
+      card
+    else
+      console.log "no card [#{id}]"
+      null
 
   onSqlRead: (err, rows) ->
      if (err)
@@ -186,7 +214,7 @@ class Cards
             Card.prototype[name + "?"] = function () {
                 return (this[prefix] & item.value) > 0
             }
-            Object.defineProperty(Card.prototype, name, { get: Card.prototype[name + "?" ] });
+            Object.defineProperty(Card.prototype, name, { get: Card.prototype[name + "?"], configurable: true });
         }
     `
     0
@@ -208,3 +236,5 @@ String.prototype.toCamelCase = ->
 new Cards('zh-CN')
 new Cards('en-US')
 new Cards('ja-JP')
+
+@Cards = Cards
