@@ -50,7 +50,7 @@ class Cards
   @readDataSQL = "select * from datas join texts on datas.id == texts.id where datas.id = (?)"
   @searchNameSQL = "select id from texts where name like (?)"
   @localePath = "./ygopro-database/locales/"
-  @defaultConstants = "./constant.lua"
+  @defaultConstants = "./Constant.lua"
 
   constructor: (locale, constants) ->
     @cards = {}
@@ -80,7 +80,7 @@ class Cards
     @registerMethods()
 
     proxy = new Proxy this, get: (target, name) ->
-      id = parseInt name
+      id = parseInt name if typeof name == 'string'
       if id and id > 0
         return target.getCardByID id
       else
@@ -94,7 +94,7 @@ class Cards
     @generateCardByIDAsync id, callback
 
   getCardByID: (id) ->
-    callback(@cards[id]) if @cards[id]
+    return @cards[id] if @cards[id]
     @generateCardByID id
 
   generateCardByIDAsync: (id, callback) ->
@@ -103,6 +103,7 @@ class Cards
     stmt.all @onSqlRead.bind
       callback: callback,
       stmt: stmt,
+      id: id,
       cards: @cards
 
   generateCardByID: (id) ->
@@ -121,7 +122,7 @@ class Cards
        console.log "sql query failed: #{err}"
        @callback(null)
      else if rows.length == 0
-       console.log "no card [#{id}]"
+       console.log "no card [#{@id}]"
        @callback(null)
      else
       # as id is the primary key we can assume that rows always has 0 or 1 value.
@@ -237,4 +238,4 @@ new Cards('zh-CN')
 new Cards('en-US')
 new Cards('ja-JP')
 
-@Cards = Cards
+module.exports = Cards

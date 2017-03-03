@@ -102,7 +102,9 @@
         proxy = new Proxy(this, {
           get: function(target, name) {
             var id;
-            id = parseInt(name);
+            if (typeof name === 'string') {
+              id = parseInt(name);
+            }
             if (id && id > 0) {
               return target.getCardByID(id);
             } else {
@@ -123,7 +125,7 @@
 
       getCardByID(id) {
         if (this.cards[id]) {
-          callback(this.cards[id]);
+          return this.cards[id];
         }
         return this.generateCardByID(id);
       }
@@ -135,6 +137,7 @@
         return stmt.all(this.onSqlRead.bind({
           callback: callback,
           stmt: stmt,
+          id: id,
           cards: this.cards
         }));
       }
@@ -159,7 +162,7 @@
           console.log(`sql query failed: ${err}`);
           this.callback(null);
         } else if (rows.length === 0) {
-          console.log(`no card [${id}]`);
+          console.log(`no card [${this.id}]`);
           this.callback(null);
         } else {
           card = new Card(rows[0]);
@@ -334,7 +337,7 @@
 
     Cards.localePath = "./ygopro-database/locales/";
 
-    Cards.defaultConstants = "./constant.lua";
+    Cards.defaultConstants = "./Constant.lua";
 
     return Cards;
 
@@ -350,7 +353,7 @@
 
   new Cards('ja-JP');
 
-  this.Cards = Cards;
+  module.exports = Cards;
 
 }).call(this);
 

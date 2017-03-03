@@ -140,6 +140,8 @@
 
   };
 
+  module.exports = Deck;
+
 }).call(this);
 
 //# sourceMappingURL=Deck.js.map

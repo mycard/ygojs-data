@@ -20,7 +20,7 @@ Cards[lang]|'zh-CN'|获取以此参数初始化的 Cards 对象。
 # Card class
 `Card` 描述了一张卡。
 
-**请注意，`Card` 类的多数函数由 `constant.lua` 中的内容动态生成。**
+**请注意，`Card` 类的多数函数由 `Constant.lua` 中的内容动态生成。**
 
 之所以写在文档中，是因为我们近似认为 `costant.lua` 是近似不变的。
 

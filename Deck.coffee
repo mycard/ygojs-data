@@ -87,3 +87,5 @@ class Deck
 
   @fromFileSync: (filePath) ->
     @fromString fs.readFileSync(filePath).toString()
+
+module.exports = Deck
