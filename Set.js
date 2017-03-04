@@ -37,10 +37,11 @@
         callback(this.ids.includes(id));
       }
       set = this;
-      return this.parent.searchSetByNumberAsync(this.number, function(ids) {
+      this.parent.searchSetByNumberAsync(this.number, function(ids) {
         set.ids = ids;
         return callback(set.ids.includes(id));
       });
+      return 0;
     }
 
   };

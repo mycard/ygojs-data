@@ -23,6 +23,7 @@ class Set
     @parent.searchSetByNumberAsync @number, (ids) ->
       set.ids = ids
       callback(set.ids.includes(id))
+    0
 
 class Sets
 
