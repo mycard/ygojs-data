@@ -86,6 +86,20 @@ class Replay
     @hostDeck = null
     @clientDeck = null
 
+    @tagHostName = null
+    @tagClientName = null
+    @tagHostDeck = null
+    @tagClientDeck = null
+
+  getDecks: ->
+    if @isTag
+      [@hostDeck, @clientDeck, @tagHostDeck, @tagClientDeck]
+    else
+      [@hostDeck, @clientDeck]
+
+  getIsTag: ->
+    @header == null ? false : @header.isTag
+
   @fromFile: (filePath) ->
     Replay.fromBuffer fs.readFileSync filePath
 
@@ -116,12 +130,16 @@ class Replay
     replay = new Replay()
     replay.header = header
     replay.hostName = reader.readString(40)
+    replay.tagHostName = reader.readString(40) if header.isTag
+    replay.tagClientName = reader.readString(40) if header.isTag
     replay.clientName = reader.readString(40)
     replay.startLp = reader.readInt32()
     replay.startHand = reader.readInt32()
     replay.drawCount = reader.readInt32()
     replay.opt = reader.readInt32()
     replay.hostDeck = Replay.readDeck reader
+    replay.tagHostDeck = Replay.readDeck reader if header.isTag
+    replay.tagClientDeck = Replay.readDeck reader if header.isTag
     replay.clientDeck = Replay.readDeck reader
     replay
 
@@ -136,5 +154,8 @@ class Replay
     answer = []
     answer.push reader.readInt32() for i in [1..length]
     answer
+
+  Object.defineProperty replayHeader.prototype, 'decks', get: @getDecks
+  Object.defineProperty replayHeader.prototype, 'isTag', get: @getIsTag
 
 module.exports = Replay

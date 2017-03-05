@@ -121,85 +121,129 @@
 
   };
 
-  Replay = class Replay {
-    constructor() {
-      this.header = null;
-      this.hostName = "";
-      this.clientName = "";
-      this.startLp = 0;
-      this.startHand = 0;
-      this.drawCount = 0;
-      this.opt = 0;
-      this.hostDeck = null;
-      this.clientDeck = null;
-    }
-
-    static fromFile(filePath) {
-      return Replay.fromBuffer(fs.readFileSync(filePath));
-    }
-
-    static fromBuffer(buffer) {
-      var decompressed, header, lzmaBuffer, reader, replay;
-      reader = new ReplayReader(buffer);
-      header = Replay.readHeader(reader);
-      lzmaBuffer = Buffer.concat([header.getLzmaHeader(), reader.readAll()]);
-      if (header.isCompressed) {
-        decompressed = lzmaBuffer;
-      } else {
-        decompressed = Buffer.from(lzma.decompress(lzmaBuffer));
+  Replay = (function() {
+    class Replay {
+      constructor() {
+        this.header = null;
+        this.hostName = "";
+        this.clientName = "";
+        this.startLp = 0;
+        this.startHand = 0;
+        this.drawCount = 0;
+        this.opt = 0;
+        this.hostDeck = null;
+        this.clientDeck = null;
+        this.tagHostName = null;
+        this.tagClientName = null;
+        this.tagHostDeck = null;
+        this.tagClientDeck = null;
       }
-      reader = new ReplayReader(decompressed);
-      replay = Replay.readReplay(header, reader);
-      return replay;
-    }
 
-    static readHeader(reader) {
-      var header;
-      header = new replayHeader();
-      header.id = reader.readInt32();
-      header.version = reader.readInt32();
-      header.flag = reader.readInt32();
-      header.seed = reader.readInt32();
-      header.dataSizeRaw = reader.readByteArray(4);
-      header.hash = reader.readInt32();
-      header.props = reader.readByteArray(8);
-      return header;
-    }
-
-    static readReplay(header, reader) {
-      var replay;
-      replay = new Replay();
-      replay.header = header;
-      replay.hostName = reader.readString(40);
-      replay.clientName = reader.readString(40);
-      replay.startLp = reader.readInt32();
-      replay.startHand = reader.readInt32();
-      replay.drawCount = reader.readInt32();
-      replay.opt = reader.readInt32();
-      replay.hostDeck = Replay.readDeck(reader);
-      replay.clientDeck = Replay.readDeck(reader);
-      return replay;
-    }
-
-    static readDeck(reader) {
-      var deck;
-      deck = new Deck;
-      deck.main = Replay.readDeckPack(reader);
-      deck.ex = Replay.readDeckPack(reader);
-      return deck;
-    }
-
-    static readDeckPack(reader) {
-      var answer, i, j, length, ref;
-      length = reader.readInt32();
-      answer = [];
-      for (i = j = 1, ref = length; 1 <= ref ? j <= ref : j >= ref; i = 1 <= ref ? ++j : --j) {
-        answer.push(reader.readInt32());
+      getDecks() {
+        if (this.isTag) {
+          return [this.hostDeck, this.clientDeck, this.tagHostDeck, this.tagClientDeck];
+        } else {
+          return [this.hostDeck, this.clientDeck];
+        }
       }
-      return answer;
-    }
 
-  };
+      getIsTag() {
+        var ref;
+        return (ref = this.header === null) != null ? ref : {
+          "false": this.header.isTag
+        };
+      }
+
+      static fromFile(filePath) {
+        return Replay.fromBuffer(fs.readFileSync(filePath));
+      }
+
+      static fromBuffer(buffer) {
+        var decompressed, header, lzmaBuffer, reader, replay;
+        reader = new ReplayReader(buffer);
+        header = Replay.readHeader(reader);
+        lzmaBuffer = Buffer.concat([header.getLzmaHeader(), reader.readAll()]);
+        if (header.isCompressed) {
+          decompressed = lzmaBuffer;
+        } else {
+          decompressed = Buffer.from(lzma.decompress(lzmaBuffer));
+        }
+        reader = new ReplayReader(decompressed);
+        replay = Replay.readReplay(header, reader);
+        return replay;
+      }
+
+      static readHeader(reader) {
+        var header;
+        header = new replayHeader();
+        header.id = reader.readInt32();
+        header.version = reader.readInt32();
+        header.flag = reader.readInt32();
+        header.seed = reader.readInt32();
+        header.dataSizeRaw = reader.readByteArray(4);
+        header.hash = reader.readInt32();
+        header.props = reader.readByteArray(8);
+        return header;
+      }
+
+      static readReplay(header, reader) {
+        var replay;
+        replay = new Replay();
+        replay.header = header;
+        replay.hostName = reader.readString(40);
+        if (header.isTag) {
+          replay.tagHostName = reader.readString(40);
+        }
+        if (header.isTag) {
+          replay.tagClientName = reader.readString(40);
+        }
+        replay.clientName = reader.readString(40);
+        replay.startLp = reader.readInt32();
+        replay.startHand = reader.readInt32();
+        replay.drawCount = reader.readInt32();
+        replay.opt = reader.readInt32();
+        replay.hostDeck = Replay.readDeck(reader);
+        if (header.isTag) {
+          replay.tagHostDeck = Replay.readDeck(reader);
+        }
+        if (header.isTag) {
+          replay.tagClientDeck = Replay.readDeck(reader);
+        }
+        replay.clientDeck = Replay.readDeck(reader);
+        return replay;
+      }
+
+      static readDeck(reader) {
+        var deck;
+        deck = new Deck;
+        deck.main = Replay.readDeckPack(reader);
+        deck.ex = Replay.readDeckPack(reader);
+        return deck;
+      }
+
+      static readDeckPack(reader) {
+        var answer, i, j, length, ref;
+        length = reader.readInt32();
+        answer = [];
+        for (i = j = 1, ref = length; 1 <= ref ? j <= ref : j >= ref; i = 1 <= ref ? ++j : --j) {
+          answer.push(reader.readInt32());
+        }
+        return answer;
+      }
+
+    };
+
+    Object.defineProperty(replayHeader.prototype, 'decks', {
+      get: Replay.getDecks
+    });
+
+    Object.defineProperty(replayHeader.prototype, 'isTag', {
+      get: Replay.getIsTag
+    });
+
+    return Replay;
+
+  })();
 
   module.exports = Replay;
 

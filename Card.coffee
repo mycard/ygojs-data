@@ -3,6 +3,7 @@
 sqlite = require 'sqlite3'
 sqliteSync = require 'better-sqlite3'
 fs = require 'fs'
+variables = require './Variables.json'
 
 class Card
   constructor: (data) ->
@@ -49,7 +50,7 @@ Object.defineProperty Card.prototype, 'pendulumScale',
 class Cards
   @readDataSQL = "select * from datas join texts on datas.id == texts.id where datas.id = (?)"
   @searchNameSQL = "select id from texts where name like (?)"
-  @localePath = "./ygopro-database/locales/"
+  @localePath = variables.localePath
   @defaultConstants = "./Constant.lua"
 
   constructor: (locale, constants) ->
@@ -92,6 +93,7 @@ class Cards
   getCardByIDASync: (id, callback) ->
     callback(@cards[id]) if @cards[id]
     @generateCardByIDAsync id, callback
+    0
 
   getCardByID: (id) ->
     return @cards[id] if @cards[id]

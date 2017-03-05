@@ -3,6 +3,7 @@
 sqlite = require 'sqlite3'
 sqliteSync = require 'better-sqlite3'
 fs = require 'fs'
+variables = require './Variables.json'
 
 class Set
   constructor: (number, name, parent) ->
@@ -29,7 +30,7 @@ class Sets
 
   @SqlQuerySet    = 'select id from datas where (setcode & 0x0000000000000FFF == (?) or setcode & 0x000000000FFF0000 == (?) or setcode & 0x00000FFF00000000 == (?) or setcode & 0x0FFF000000000000 == (?))'
   @SqlQuerySubset = 'select id from datas where (setcode & 0x000000000000FFFF == (?) or setcode & 0x00000000FFFF0000 == (?) or setcode & 0x0000FFFF00000000 == (?) or setcode & 0xFFFF000000000000 == (?))'
-  @localePath = "./ygopro-database/locales/"
+  @localePath = variables.localePath
 
   constructor: (locale) ->
     db = Sets.localePath + locale + "/cards.cdb"

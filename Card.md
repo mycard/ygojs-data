@@ -5,10 +5,10 @@
 ----|----|----
 constructor(lang[, constantFilepath])|构造|以给定参数为语言，创建一个新集合。
 getCardById(id)|Card|查询指定ID的卡片。
-getCardByIdASync(id, callback(card))|No sense|查询指定ID的卡片。`*`
+getCardByIdASync(id, callback(card))|0|查询指定ID的卡片。`*`
 getAttributeName(card)|String|获得卡片在本语言下的的属性名。
 getRaceName(card)|String|获得卡片在本语言下的的种族名。
-[id]|Card|查询指定ID的卡片。
+[id]|Card|查询指定ID的卡片。会触发**同步**查询。
 
 `*` 使用 `sqlite3` 的异步方法可能更稳定。
 
@@ -22,7 +22,7 @@ Cards[lang]|'zh-CN'|获取以此参数初始化的 Cards 对象。
 
 **请注意，`Card` 类的多数函数由 `Constant.lua` 中的内容动态生成。**
 
-之所以写在文档中，是因为我们近似认为 `costant.lua` 是近似不变的。
+之所以写在文档中，是因为我们近似认为 `Costant.lua` 是近似不变的。
 
 **不同配置的生成的字段会混杂在一起。**
 

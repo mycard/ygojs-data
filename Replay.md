@@ -8,28 +8,29 @@ fromBuffer(buffer)|Replay|从Buffer对象中读取录像
 ## 字段
 字段|类型|说明
 ----|:----:|----
-header|replayHeader|
+header|`replayHeader`|
 hostName|string|主机用户名
 clientName|string|客户机用户名
 startLp|int|游戏开始时双方LP
 startHand|int|游戏开始时双方手牌数
 drawCount|int|双方每回合抓的牌数
-opt|int|游戏环境
+opt|int|游戏环境（O/T）
 hostDeck|int|主机使用的卡组
 clientDeck|int|客户机使用的卡组
+decks|[`Deck`]|所有本录像中包含的卡组
 
 ## `TAG` 字段
 字段|类型|说明
 ----|:----:|----
+isTag|bool|转发 header.isTag
 tagHostName|string|TAG 主机用户名
 tagClientName|string|TAG 客户机用户名
 tagHostDeck|int|TAG 主机使用的卡组
 tagClientDeck|int|TAG客户机使用的卡组
 这些字段均仅当回放为一场 `TAG` 决斗时才生效。
 
-
 # replayHeader Class
-录像的文件头。录像的一部分。
+`replayHeader` 类抽象了录像的文件头。是录像的一部分。
 ## 字段
 字段|类型|说明
 ----|----|----
