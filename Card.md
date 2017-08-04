@@ -1,30 +1,9 @@
-# Cards class
-`Cards` 类描述了一个语言环境下的卡片集合。
-## 函数
-名称|返回|说明
-----|----|----
-constructor(lang[, constantFilepath])|构造|以给定参数为语言，创建一个新集合。
-getCardById(id)|Card|查询指定ID的卡片。
-getCardByIdASync(id, callback(card))|0|查询指定ID的卡片。`*`
-getAttributeName(card)|String|获得卡片在本语言下的的属性名。
-getRaceName(card)|String|获得卡片在本语言下的的种族名。
-[id]|Card|查询指定ID的卡片。会触发**同步**查询。
-
-`*` 使用 `sqlite3` 的异步方法可能更稳定。
-
-## 静态函数
-名称|参数|说明
-----|----|----
-Cards[lang]|'zh-CN'|获取以此参数初始化的 Cards 对象。
-
 # Card class
 `Card` 描述了一张卡。
 
 **请注意，`Card` 类的多数函数由 `Constant.lua` 中的内容动态生成。**
 
 之所以写在文档中，是因为我们近似认为 `Costant.lua` 是近似不变的。
-
-**不同配置的生成的字段会混杂在一起。**
 
 不由动态生成得到者在下文中会用 `*` 注明。
 
@@ -41,6 +20,8 @@ name|卡名
 desc|卡片描述
 level|等级，怪兽卡片才具有
 pendulumScale|灵摆刻度，其他怪兽为 `-1`
+linkMarkers|连接箭头，其他怪兽为 `null`
+linkNumber|连接数，其他怪兽为 `null`
 race|种族，怪兽卡片才具有
 attribute|属性，怪兽卡片才具有
 atk|攻击力，怪兽卡片才具有
@@ -76,6 +57,7 @@ isTypeToon|是否是卡通（怪兽）
 isTypeXyz|是否是XYZ（怪兽）
 isTypePendulum|是否是灵摆（怪兽）
 isTypeSpsummon|是否是特殊召唤（怪兽）
+isTypeLink|是否是连接（怪兽）
 isAttributeEarth|是否是地属性
 isAttributeWater|是否是水属性
 isAttributeFire|是否属火属性

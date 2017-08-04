@@ -22,12 +22,12 @@ card|`main` `side` `ex` 中的值为 `Card` 对象
 字段|返回|说明
 ----|:----:|----
 classify|this|将卡片分类，在那之前 `classifiedX` 为空。
-seprateExFromMain|this|将主卡组中的额外怪兽放置到额外中。
-tranFromToCards|this|将 `form` 变更为 `card`。会触发**同步**查询
+separateExFromMain|this|将主卡组中的额外怪兽放置到额外中。
+tranFromToCards|this|将 `form` 变更为 `card`。
 transformToID|this|将 `form` 变更为 `id`
 
 ## 静态函数
 字段|返回|说明
 ----|:----:|----
 fromString|`Deck`|从字符串中读取卡组
-fromFile|`Deck`|从文件中读取卡组
+fromFileSync|`Deck`|从文件中读取卡组

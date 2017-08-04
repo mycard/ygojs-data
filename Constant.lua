@@ -53,6 +53,8 @@ TYPE_TOON			=0x400000	--卡通
 TYPE_XYZ			=0x800000	--超量
 TYPE_PENDULUM		=0x1000000	--灵摆
 TYPE_SPSUMMON		=0x2000000	--特殊召唤
+TYPE_LINK           =0x4000000  --连接
+
 --Attributes 属性
 ATTRIBUTE_EARTH		=0x01		--地
 ATTRIBUTE_WATER		=0x02		--水

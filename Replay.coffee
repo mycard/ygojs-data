@@ -17,7 +17,7 @@ class replayHeader
     @props = []
 
   getDataSize: ->
-    @dataSizeRaw[0] + @dataSizeRaw[1] * 0x100 + @dataSizeRaw[2] * 0x10000 + @dataSizeRaw * 0x1000000
+    @dataSizeRaw[0] + @dataSizeRaw[1] * 0x100 + @dataSizeRaw[2] * 0x10000 + @dataSizeRaw[3] * 0x1000000
 
   getIsTag: ->
     @flag & replayHeader.replayTagFlag > 0

@@ -1,3 +1,4 @@
 {
-  "localePath": "./ygopro-database/locales/"
+  "databasePath": "./ygopro-database/locales/",
+  "luaPath": "./Constant.lua"
 }

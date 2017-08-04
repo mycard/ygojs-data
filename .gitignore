@@ -2,3 +2,5 @@
 ygopro-database
 node_modules
 *.js.map
+*.js
+test/
