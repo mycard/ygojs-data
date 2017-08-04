@@ -4,7 +4,7 @@
 ## 静态函数
 名称|参数|说明
 ---|---|---
-new|locale|
+new|locale|创建一个具有`locale`的`Environment`
 []|locale|若你曾创建过具有此`locale`的`Environment`，返回之。
 
 ## 字段
