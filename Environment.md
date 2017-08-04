@@ -5,6 +5,7 @@
 名称|参数|说明
 ---|---|---
 new|locale|
+[]|locale|若你曾创建过具有此`locale`的`Environment`，返回之。
 
 ## 字段
 名称|说明
