@@ -15,7 +15,7 @@ class Environment
   @environments = {}
 
   @loadLuaFile = ->
-    constantString = fs.readFileSync(Config.luaPath).toString()
+    constantString = fs.readFileSync(path.join __dirname, Config.luaPath).toString()
     constantLines = constantString.split "\n"
     for constantLine in constantLines
       [name, value] = @loadLuaLines constantLine
