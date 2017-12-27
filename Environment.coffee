@@ -235,3 +235,5 @@ class Environment
     stmt = database.prepare(Environment.STRICTLY_SEARCH_NAME_SQL)
     rows = stmt.get name
     if !rows or rows.length == 0 then null else rows[0].id
+
+module.exports = Environment
