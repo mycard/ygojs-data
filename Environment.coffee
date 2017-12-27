@@ -47,6 +47,9 @@ class Environment
        Object.defineProperty Card.prototype, name, { get: Card[name + "?"], configurable: true }
 
   @registerMethods()
+  
+  @setConfig: (config) ->
+    Config[key] = value for key, value of config
 
   # SQL 卡片查询指令
   @READ_DATA_SQL = 'select * from datas join texts on datas.id == texts.id where datas.id == (?)'
