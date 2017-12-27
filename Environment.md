@@ -23,3 +23,6 @@ cards|缓存中的卡片。
 ----|----|----
 []|id|检索此环境下具有id的卡片。没有的话，会返回 `undefined`
 loadAllCards|-|载入所有卡片到 `cards`
+searchCardByName|name|搜索名称包含 `name` 的卡片，返回它们的 `id` 的集合。
+getCardByName|name|获得名为 `name` 的卡片的 `Card` 对象。
+-|-|若名为 `name` 的卡片不存在，则返回的是名称包含 `name` 的卡片中 `id` 最小者。

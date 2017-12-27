@@ -56,6 +56,7 @@ class Environment
   @QUERY_SUBSET_SQL = 'select id from datas where (setcode & 0x000000000000FFFF == (?) or setcode & 0x00000000FFFF0000 == (?) or setcode & 0x0000FFFF00000000 == (?) or setcode & 0xFFFF000000000000 == (?))'
   # SQL 卡片查询指令
   @SEARCH_NAME_SQL = 'select id from texts where name like (?)'
+  @STRICTLY_SEARCH_NAME_SQL = 'select id from texts where name == (?)'
 
   constructor: (locale) ->
     @attributes = []
@@ -201,7 +202,9 @@ class Environment
       @cards[card.id] = card
     @cards
 
-###
+  clearCards: ->
+    @cards = {}
+
   searchCardByName: (name) ->
     ids = []
     for db in @dbs
@@ -210,6 +213,22 @@ class Environment
 
   searchCardByNameFromDatabase: (database, name) ->
     stmt = database.prepare(Environment.SEARCH_NAME_SQL)
-    rows = stmt.get("\"#{name}\"")
-    return rows.map (row) -> row.id
-###
+    rows = stmt.all("%#{name}%")
+    return [] unless rows
+    rows.map (row) -> row.id
+
+  getCardByName: (name) ->
+    for db in @dbs
+      id = @getCardByNameFromDatabase(db, name)
+      return @getCardById(id) if id and id > 0
+    for db in @dbs
+      ids = @searchCardByNameFromDatabase(db, name)
+      return @getCardById(ids[0]) if ids and ids.length > 0
+    null
+
+  getCardByNameFromDatabase: (database, name) ->
+    stmt = database.prepare(Environment.STRICTLY_SEARCH_NAME_SQL)
+    rows = stmt.get name
+    if !rows or rows.length == 0 then null else rows[0].id
+
+module.exports = Environment
