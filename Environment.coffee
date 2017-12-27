@@ -62,6 +62,8 @@ class Environment
   @STRICTLY_SEARCH_NAME_SQL = 'select id from texts where name == (?)'
 
   constructor: (locale) ->
+    return Environment[locale] if Environment[locale]
+
     @attributes = []
     @races = []
     @types = []
@@ -233,5 +235,3 @@ class Environment
     stmt = database.prepare(Environment.STRICTLY_SEARCH_NAME_SQL)
     rows = stmt.get name
     if !rows or rows.length == 0 then null else rows[0].id
-
-module.exports = Environment
