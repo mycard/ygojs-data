@@ -72,6 +72,7 @@ class Environment
     @cards = {}
 
     @dbs = @searchCdb locale
+    return null unless @dbs
 
     @attributeNames = []
     @typeNames = []
@@ -173,8 +174,11 @@ class Environment
     typeNames = []
     for type in @types
       if (card.type & type.value) > 0
-        typeNames.push attribute.text
+        typeNames.push type.text
     typeNames
+
+  prettyTypeName: (card) ->
+    this.typeName(card).join '/'
 
   getCardById: (id) ->
     card = @cards[id]
