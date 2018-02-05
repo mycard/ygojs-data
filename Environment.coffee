@@ -82,11 +82,12 @@ class Environment
     @loadStringFile()
     @linkStringAndConstants()
     @linkSetnameToSql()
-    Environment[locale] = this
 
     proxy = new Proxy this, get: (target, name) ->
       id = parseInt name if typeof name == 'string'
       if id and id > 0 then return target.getCardById id else return target[name]
+
+    Environment[locale] = proxy
     return proxy
 
   searchCdb: ->

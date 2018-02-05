@@ -17,7 +17,6 @@ class Set
 
   includes: (card) ->
     id = (Number.isInteger(card)) ? card : card.id
-    @ids = @parent.searchSetByNumber @number unless @ids
     @ids.includes id
 
 module.exports = Set
