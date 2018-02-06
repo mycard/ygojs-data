@@ -24,7 +24,6 @@ module.exports.expressResponse = (req, res) ->
   card = environment[id]
   return res.status(404).end "Can't find card #{id} in environment #{locale}" unless card
   body = req.body
-  console.log req.body
   body = JSON.parse body if typeof body == 'string'
   if body
     card.attribute = environment.attributeName card if body.translateAttribute
