@@ -5,7 +5,7 @@ module.exports.koaResponse = (ctx, next) ->
   id = ctx.params.id
   environment = new Environment locale
   return ctx.throw 404, "Can't find environment #{locale}" unless environment
-  card = environment[id]
+  card = JSON.parse(JSON.stringify(environment[id])) # Clone
   return ctx.throw 404, "Can't find card #{id} in environment #{locale}" unless card
   body = ctx.request.body
   body = JSON.parse body if typeof body == 'string'
@@ -21,7 +21,7 @@ module.exports.expressResponse = (req, res) ->
   id = req.params.id
   environment = new Environment locale
   return res.status(404).end "Can't find environment #{locale}" unless environment
-  card = environment[id]
+  card = JSON.parse(JSON.stringify(environment[id]))
   return res.status(404).end "Can't find card #{id} in environment #{locale}" unless card
   body = req.body
   body = JSON.parse body if typeof body == 'string'

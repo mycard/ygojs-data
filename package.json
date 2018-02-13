@@ -8,9 +8,7 @@
   "version": "0.0.3",
   "dependencies": {
     "better-sqlite3": "^2.3.3",
-    "body-parser": "^1.18.2",
     "coffeescript": "^2.1.0",
-    "express": "^4.16.2",
     "lzma": "^2.3.2"
   }
 }
