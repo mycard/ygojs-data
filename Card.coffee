@@ -18,6 +18,40 @@ class Card
       @atk = data.atk
       @def = data.def
 
+  ###
+  bool ClientCard::deck_sort_lv(code_pointer p1, code_pointer p2) {
+    if((p1->second.type & 0x7) != (p2->second.type & 0x7))
+      return (p1->second.type & 0x7) < (p2->second.type & 0x7);
+    if((p1->second.type & 0x7) == 1) {
+      int type1 = (p1->second.type & 0x48020c0) ? (p1->second.type & 0x48020c1) : (p1->second.type & 0x31);
+      int type2 = (p2->second.type & 0x48020c0) ? (p2->second.type & 0x48020c1) : (p2->second.type & 0x31);
+      if(type1 != type2)
+        return type1 < type2;
+      if(p1->second.level != p2->second.level)
+        return p1->second.level > p2->second.level;
+      if(p1->second.attack != p2->second.attack)
+        return p1->second.attack > p2->second.attack;
+      if(p1->second.defense != p2->second.defense)
+        return p1->second.defense > p2->second.defense;
+      return p1->first < p2->first;
+    }
+    if((p1->second.type & 0xfffffff8) != (p2->second.type & 0xfffffff8))
+      return (p1->second.type & 0xfffffff8) < (p2->second.type & 0xfffffff8);
+    return p1->first < p2->first;
+  }
+  ###
+  @deckSortLevel: (p1, p2) ->
+    return p1.type & 0x7 < p2.type & 0x7 if p1.type & 0x7 != p2.type & 0x7
+    if p1.type & 0x7 == 1
+      type1 = if p1.type & 0x48020c0 then p1.type & 0x48020c1 else p1.type & 0x31
+      type2 = if p2.type & 0x48020c0 then p2.type & 0x48020c1 else p2.type & 0x31
+      return type1 < type2 if type1 != type2
+      return p1.level < p2.level if p1.level != p2.level
+      return p1.atk < p2.atk if p1.atk != p2.atk
+      return 0
+    return p1.type & 0xfffffff8 < p2.type & 0xfffffff8 if p1.type & 0xfffffff8 != p2.type & 0xfffffff8
+    return 0
+
 Object.defineProperty Card.prototype, 'isAlias',
   get: -> @alias > 0
 
