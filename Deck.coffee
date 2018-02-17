@@ -52,9 +52,9 @@ class Deck
 
   transformToId: ->
     return if @form == 'id'
-    @main = @transformPackToIds environment, @main
-    @side = @transformPackToIds environment, @side
-    @ex = @transformPackToIds environment, @ex
+    @main = @transformPackToIds @main
+    @side = @transformPackToIds @side
+    @ex = @transformPackToIds @ex
     @form = 'id'
     this
 
