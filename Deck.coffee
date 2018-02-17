@@ -25,8 +25,8 @@ class Deck
     for obj in from
       to[obj] += 1
 
-  separateExFromMain: ->
-    @transformToCards if @form != 'card'
+  separateExFromMain: (environment) ->
+    @transformToCards environment if @form != 'card'
     newMain = []
     for card in @main
       continue unless card
@@ -63,8 +63,8 @@ class Deck
     answer.push card.id for card in pack
     answer
 
-  sort: ->
-    @transformToCards if @form != 'card'
+  sort: (environment) ->
+    @transformToCards environment if @form != 'card'
     @main.sort Card.deckSortLevel
     @side.sort Card.deckSortLevel
     @ex.sort Card.deckSortLevel
