@@ -41,15 +41,16 @@ class Card
   }
   ###
   @deckSortLevel: (p1, p2) ->
-    return p1.type & 0x7 < p2.type & 0x7 if p1.type & 0x7 != p2.type & 0x7
-    if p1.type & 0x7 == 1
-      type1 = if p1.type & 0x48020c0 then p1.type & 0x48020c1 else p1.type & 0x31
-      type2 = if p2.type & 0x48020c0 then p2.type & 0x48020c1 else p2.type & 0x31
-      return type1 < type2 if type1 != type2
-      return p1.level < p2.level if p1.level != p2.level
-      return p1.atk < p2.atk if p1.atk != p2.atk
+    return (p1.type & 0x7) - (p2.type & 0x7) if (p1.type & 0x7) != (p2.type & 0x7)
+    if (p1.type & 0x7) == 1
+      type1 = if (p1.type & 0x48020c0) then (p1.type & 0x48020c1) else (p1.type & 0x31)
+      type2 = if (p2.type & 0x48020c0) then (p2.type & 0x48020c1) else (p2.type & 0x31)
+      return type1 - type2 if type1 != type2
+      return p1.level - p2.level if p1.level != p2.level
+      return p1.atk - p2.atk if p1.atk != p2.atk
+      return p1.def - p2.def if p1.def != p2.def
       return 0
-    return p1.type & 0xfffffff8 < p2.type & 0xfffffff8 if p1.type & 0xfffffff8 != p2.type & 0xfffffff8
+    return (p1.type & 0xfffffff8) - (p2.type & 0xfffffff8) if (p1.type & 0xfffffff8) != (p2.type & 0xfffffff8)
     return 0
 
 Object.defineProperty Card.prototype, 'isAlias',
