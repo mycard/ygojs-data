@@ -218,7 +218,7 @@ class Environment
   searchCardByName: (name) ->
     ids = []
     for db in @dbs
-      ids += @searchCardByNameFromDatabase(db, name)
+      ids = ids.concat @searchCardByNameFromDatabase(db, name)
     ids
 
   searchCardByNameFromDatabase: (database, name) ->
