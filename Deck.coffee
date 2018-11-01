@@ -21,9 +21,11 @@ class Deck
 
   classifyPack: (from, to) ->
     for obj in from
-      to[obj] = 0
-    for obj in from
-      to[obj] += 1
+      obj = obj.id if @form == 'card'
+      if to[obj]
+        to[obj] += 1
+      else
+        to[obj] = 1
 
   separateExFromMain: (environment) ->
     @transformToCards environment if @form != 'card'
