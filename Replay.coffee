@@ -49,7 +49,12 @@ class ReplayReader
     answer
 
   readInt8: ->
-    answer = @buffer.readInt8LE(@pointer)
+    answer = @buffer.readInt8(@pointer)
+    @pointer += 1
+    answer
+
+  readUInt8: ->
+    answer = @buffer.readUInt8(@pointer)
     @pointer += 1
     answer
 
@@ -69,8 +74,17 @@ class ReplayReader
     answer
 
   readString: (length) ->
+    if @pointer + length > @buffer.length
+      return null
     full = @buffer.slice(@pointer, @pointer + length).toString('utf-16le')
     answer = full.split("\u0000")[0]
+    @pointer += length
+    answer
+
+  readRaw: (length) ->
+    if @pointer + length > @buffer.length
+      return null
+    answer = @buffer.slice(@pointer, @pointer + length)
     @pointer += length
     answer
 
@@ -90,6 +104,8 @@ class Replay
     @tagClientName = null
     @tagHostDeck = null
     @tagClientDeck = null
+
+    @responses = null
 
   getDecks: ->
     if @isTag
@@ -141,6 +157,7 @@ class Replay
     replay.tagHostDeck = Replay.readDeck reader if header.isTag
     replay.tagClientDeck = Replay.readDeck reader if header.isTag
     replay.clientDeck = Replay.readDeck reader
+    replay.responses = Replay.readResponses reader
     replay
 
   @readDeck: (reader) ->
@@ -154,6 +171,24 @@ class Replay
     answer = []
     answer.push reader.readInt32() for i in [1..length]
     answer
+
+  @readResponses: (reader) ->
+    answer = []
+    while true
+      try
+        length = reader.readUInt8()
+        if length > 64
+          length = 64
+        single = reader.readRaw(length)
+        if !single
+          break
+        answer.push(single)
+      catch
+        break
+    answer
+
+      
+    
 
   Object.defineProperty replayHeader.prototype, 'decks', get: @getDecks
   Object.defineProperty replayHeader.prototype, 'isTag', get: @getIsTag
