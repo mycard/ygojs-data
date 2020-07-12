@@ -7,7 +7,7 @@
   },
   "version": "0.0.3",
   "dependencies": {
-    "better-sqlite3": "^2.3.3",
+    "better-sqlite3": "^7.1.0",
     "coffeescript": "^2.1.0",
     "lzma": "^2.3.2"
   }
