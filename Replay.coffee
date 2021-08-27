@@ -6,6 +6,8 @@ class replayHeader
   @replayCompressedFlag = 0x1
   @replayTagFlag = 0x2
   @replayDecodedFlag = 0x4
+  @replaySinglMode = 0x8
+  @replayUniform = 0x10
 
   constructor: ->
     @id = 0
@@ -88,6 +90,9 @@ class ReplayReader
     @pointer += length
     answer
 
+class ReplayWriter
+  
+
 class Replay
   constructor: ->
     @header = null
@@ -122,9 +127,10 @@ class Replay
   @fromBuffer: (buffer) ->
     reader = new ReplayReader buffer
     header = Replay.readHeader reader
-    lzmaBuffer = Buffer.concat [header.getLzmaHeader(), reader.readAll()]
+    raw = reader.readAll()
+    lzmaBuffer = Buffer.concat [header.getLzmaHeader(), raw]
     if header.isCompressed
-      decompressed = lzmaBuffer
+      decompressed = raw 
     else
       decompressed = Buffer.from lzma.decompress lzmaBuffer
     reader = new ReplayReader decompressed
@@ -186,9 +192,6 @@ class Replay
       catch
         break
     answer
-
-      
-    
 
   Object.defineProperty replayHeader.prototype, 'decks', get: @getDecks
   Object.defineProperty replayHeader.prototype, 'isTag', get: @getIsTag

@@ -53,6 +53,37 @@ class Card
     return (p1.type & 0xfffffff8) - (p2.type & 0xfffffff8) if (p1.type & 0xfffffff8) != (p2.type & 0xfffffff8)
     return 0
 
+  attributeText: (env) ->
+    return null unless @isTypeMonster
+    env.attributes.filter((attribute) => attribute.value & @attribute).map((attribute) => attribute.text).join("/")
+
+  raceText: (env) ->
+    return null unless @isTypeMonster
+    env.races.filter((race) => race.value & @race).map((race) => race.text).join("/")
+
+  typeText: (env) ->
+    types = {}
+    env.types.forEach (type) => types[type.name] = type
+    monster = ['fusion', 'ritual', 'synchro', 'xyz', 'link', 'pendulum', 'normal', 'dual', 'spirit', 'union', 'tuner', 'flip', 'toon', 'spsummon', 'effect']
+    spell = ['normal', 'ritual', 'quickplay', 'continuous', 'field', 'equip']
+    trap = ['normal', 'continuous', 'counter']
+    type = @type
+    prefix = (names) => types[names.filter((name) => types[name].value & type)[0]]?.text
+    if @isTypeMonster then monster.map((name) => types[name]).filter((type) => type.value & @type).map((type) => type.text).join("/")
+    else if @isTypeSpell then (prefix(spell) ? types.normal.text) + types.spell.text
+    else if @isTypeTrap then (prefix(trap) ? types.normal.text) + types.trap.text
+    else ''
+
+  @numText: (num) ->
+    switch(num)
+      when undefined then ""
+      when -1 then "?"
+      when -2 then "∞"
+      else num.toString()
+
+  atkText: -> Card.numText @atk
+  defText: -> Card.numText @def 
+
 Object.defineProperty Card.prototype, 'isAlias',
   get: -> @alias > 0
 
