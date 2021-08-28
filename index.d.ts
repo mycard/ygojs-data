@@ -146,15 +146,18 @@ declare class Replay {
     startHand: number
     drawCount: number
     opt: number
-    hostDeck: Array<number>
-    clientDeck: Array<number>
+    hostDeck: Deck
+    clientDeck: Deck
     decks: Array<Deck>
 
     isTag: boolean
     tagHostName?: string
     tagClientName?: string
-    tagHostDeck?: Array<number>
-    tagClientDeck?: Array<number>
+    tagHostDeck?: Deck
+    tagClientDeck?: Deck
+
+    toBuffer(): Buffer
+    writeToFile(file: string): void 
 }
 
 declare class Set {

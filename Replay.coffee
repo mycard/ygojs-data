@@ -36,9 +36,8 @@ class replayHeader
   Object.defineProperty replayHeader.prototype, 'isCompressed', get: @getIsCompressed
 
 class ReplayReader
-  constructor: (buffer) ->
+  constructor: (@buffer) ->
     @pointer = 0
-    @buffer = buffer
 
   readByte: ->
     answer = @buffer.readUInt8(@pointer)
@@ -91,7 +90,21 @@ class ReplayReader
     answer
 
 class ReplayWriter
-  
+  constructor: (@buffer) ->
+    @pointer = 0
+
+  writeByte: (val) -> @buffer.writeUInt8(val, @pointer); @pointer += 1
+  writeByteArray: (vals) -> @writeByte(val) for val from vals
+  writeInt8: (val) -> @buffer.writeInt8(val, @pointer); @pointer += 1
+  writeUInt8: (val) -> @buffer.writeUInt8(val, @pointer); @pointer += 1
+  writeInt16: (val) -> @buffer.writeInt16LE(val, @pointer); @pointer += 2
+  writeInt32: (val) -> @buffer.writeInt32LE(val, @pointer); @pointer += 4
+  writeAll: (val) -> @buffer = Buffer.concat [@buffer, val]
+  writeString: (val, length) -> 
+    raw = Buffer.from val, 'utf-16le'
+    array = Uint8Array.from raw 
+    array = [...array, ...Uint8Array.from({ length: length - array.length })] if length?
+    @writeByteArray array
 
 class Replay
   constructor: ->
@@ -195,5 +208,60 @@ class Replay
 
   Object.defineProperty replayHeader.prototype, 'decks', get: @getDecks
   Object.defineProperty replayHeader.prototype, 'isTag', get: @getIsTag
+
+  toBuffer: ->
+    # Let's do some math!
+    headerWriter = new ReplayWriter Buffer.alloc 32
+    @writeHeader headerWriter
+    deckSize = (deck) -> (deck.main.length + deck.ex.length) * 4 + 8
+    responseSize = @responses.map((r) => r.length + 1).reduce(((a, b) => a + b), 0)
+    contentSize = 96 + deckSize(@hostDeck) + deckSize(@clientDeck) + responseSize
+    contentSize += deckSize(@tagHostDeck) + deckSize(@tagClientDeck) + 80 if @header.isTag
+    contentWriter = new ReplayWriter Buffer.alloc contentSize
+    @writeReplayContent contentWriter
+    headerBuffer = headerWriter.buffer
+    contentBuffer = contentWriter.buffer
+    contentBuffer = new Buffer(lzmaBuffer.compress(contentBuffer))[13..] if @header.isCompressed
+    Buffer.concat [headerBuffer, contentBuffer]
+
+  writeToFile: (file) ->
+    fs.writeFileSync file, @toBuffer()
+
+  writeHeader: (writer) ->
+    writer.writeInt32 @header.id
+    writer.writeInt32 @header.version
+    writer.writeInt32 @header.flag
+    writer.writeInt32 @header.seed
+    writer.writeByteArray @header.dataSizeRaw
+    writer.writeInt32 @header.hash
+    writer.writeByteArray @header.props
+
+  writeReplayContent: (writer) ->
+    writer.writeString @hostName, 40
+    writer.writeString @tagHostName, 40 if @header.isTag
+    writer.writeString @tagClientName, 40 if @header.isTag
+    writer.writeString @clientName, 40
+    writer.writeInt32 @startLp
+    writer.writeInt32 @startHand
+    writer.writeInt32 @drawCount
+    writer.writeInt32 @opt
+    Replay.writeDeck writer, @hostDeck
+    Replay.writeDeck writer, @tagHostDeck if @header.isTag
+    Replay.writeDeck writer, @tagClientDeck if @header.isTag
+    Replay.writeDeck writer, @clientDeck
+    Replay.writeResponses writer, @responses
+
+  @writeDeck: (writer, deck) ->
+    @writeDeckPack writer, deck.main
+    @writeDeckPack writer, deck.ex
+
+  @writeDeckPack: (writer, pack) ->
+    writer.writeInt32 pack.length
+    writer.writeInt32 card for card from pack
+
+  @writeResponses: (writer, responses) ->
+    for response from responses
+      writer.writeUInt8 response.length
+      writer.writeByteArray Uint8Array.from response
 
 module.exports = Replay
